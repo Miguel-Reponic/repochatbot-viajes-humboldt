@@ -2,6 +2,11 @@
 from flask import Flask, request
 import requests
 import json
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+import threading
+import time
 
 # Integration With SendPulse
 
@@ -30,8 +35,23 @@ application = Flask(__name__)
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text + instructions + footer_text))
 
+# time.sleep(1)
+
+# Start the WebDriver and Login
+driver = webdriver.Chrome(executable_path='chromedriver.exe')
+driver.get("https://web.whatsapp.com")
+sem = threading.Semaphore()
+lastGroupName = ""
+
+@application.route('/start_whatsapp_web', methods=['POST'])
+def start_whatsapp_web():
+
+    return("success", 200)
+
 @application.route('/repochatbot_api', methods=['POST'])
 def repochatbot_api():
+
+    sem.acquire()
     groupName = 'Bot API Viajes Humboldt'  # FIXME
     message = "Error"  # FIXME
 
@@ -44,10 +64,6 @@ def repochatbot_api():
     nombre = incoming_mesg['Nombre']
     telefono = incoming_mesg['Telefono']
     partida_destino = incoming_mesg['PartidaDestino']
-    try:
-        detalles_extras = incoming_mesg['DetallesExtra']
-    except KeyError:
-        print("No hay deatlles extras")
         
     tipo_de_servicio = incoming_mesg['TipoDeServicio']
 
@@ -57,7 +73,7 @@ def repochatbot_api():
         fecha_de_viaje = incoming_mesg['FechaViaje']
         pasajeros_cantidad = incoming_mesg['PasajerosCantidad']
 
-        message = message + f"*Fecha de Viaje:* {fecha_de_viaje}\nCantidad de Pasajeros: {pasajeros_cantidad}"
+        message = message + f"*Fecha de Viaje:* {fecha_de_viaje}\n*Cantidad de Pasajeros:* {pasajeros_cantidad}"
 
         groupName = GRUPO_BOLETOS_AEREOS
 
@@ -65,7 +81,7 @@ def repochatbot_api():
         fecha_de_viaje = incoming_mesg['FechaViaje']
         pasajeros_cantidad = incoming_mesg['PasajerosCantidad']
 
-        message = message + f"*Fecha de Viaje:* {fecha_de_viaje}\nCantidad de Pasajeros: {pasajeros_cantidad}"
+        message = message + f"*Fecha de Viaje:* {fecha_de_viaje}\n*Cantidad de Pasajeros:* {pasajeros_cantidad}"
         groupName = GRUPO_PAQUETES_TURISTICOS
 
     elif tipo_de_servicio == "Seguros De Viaje":
@@ -78,51 +94,82 @@ def repochatbot_api():
         if incoming_mesg['NoAtendido'] == "True":
             message = "URGENTE!! NO HA SIDO ATENDIDO EN 2 HORAS:\n\n" + message
 
-    body_token = {
-        'grant_type' : "client_credentials",
-        'client_id' : '101800f95cbe9e47fa8fbe68685be3c2',
-        'client_secret' : 'f9694fb799bcb4657a740433b9083a81'
-    }
+    # body_token = {
+    #     'grant_type' : "client_credentials",
+    #     'client_id' : '101800f95cbe9e47fa8fbe68685be3c2',
+    #     'client_secret' : 'f9694fb799bcb4657a740433b9083a81'
+    # }
 
-    token_response = r = requests.post("https://api.sendpulse.com/oauth/access_token",
-            json=body_token)
+    # token_response = r = requests.post("https://api.sendpulse.com/oauth/access_token",
+    #         json=body_token)
 
-    token_response = token_response.text
+    # token_response = token_response.text
 
-    token = json.loads(token_response)
+    # token = json.loads(token_response)
 
-    token = token['token_type'] + token['access_token']
+    # token = token['token_type'] + token['access_token']
 
-    message = f"{message} \n \n Grupo: {groupName}"
+    try:
+        detalles_extras = incoming_mesg['DetallesExtra']
+    except KeyError:
+        print("No hay deatlles extras")
 
-    headers = {
-    'accept': "application/json", 
-    'Authorization': token,
-    "Content-Type": "application/json"
-    }
+    message = f"{message} \n*Detalles Extras:* {detalles_extras} \n \n Grupo: {groupName}"
 
-    jsonBody = {
-    "contact_id": "61d83bcc256dd967f942d71c",
-    "message": {
-        "type": "text",
-        "text": {
-        "body": message
-        }
-  }
-    }
+#     headers = {
+#     'accept': "application/json", 
+#     'Authorization': token,
+#     "Content-Type": "application/json"
+#     }
+
+#     jsonBody = {
+#     "contact_id": "61d83bcc256dd967f942d71c",
+#     "message": {
+#         "type": "text",
+#         "text": {
+#         "body": message
+#         }
+#   }
+#     }
 
     print("Enviando Mensaje")
 
-    try:
-        r = requests.post("https://api.sendpulse.com/whatsapp/contacts/send", 
-            headers=headers,
-            json=jsonBody)
-    except Exception as e:
-        print("Algo ha pasado:\n {e}")
+    # try:
+    #     r = requests.post("https://api.sendpulse.com/whatsapp/contacts/send", 
+    #         headers=headers,
+    #         json=jsonBody)
+    # except Exception as e:
+    #     print("Algo ha pasado:\n {e}")
 
+    # JUST FOR TESTING
+    # groupName = incoming_mesg['TestGroup']
 
-    print("Status code: " + str(r.status_code))
-    print("RESPONSE : " + str(r.content))
+    global lastGroupName
+
+    if groupName != lastGroupName:
+        lastGroupName = groupName
+        Text_Box_Search = "#side > div.uwk68 > div > label > div > div._13NKt.copyable-text.selectable-text"
+        input_box_search = WebDriverWait(driver,50).until(lambda driver: driver.find_element_by_css_selector(Text_Box_Search))
+        input_box_search.click()
+        input_box_search.clear()
+        input_box_search.send_keys(groupName)
+        selected_contact = driver.find_elements_by_xpath(f'.//span[@title = "{groupName}"]')
+        selected_contact[0].click()
+
+    inp_selector_chat = '#main > footer > div._2BU3P.tm2tP.copyable-area > div > span:nth-child(2) > div > div._2lMWa > div.p3_M1 > div > div._13NKt.copyable-text.selectable-text'
+    input_box = driver.find_element_by_css_selector(inp_selector_chat)
+    time.sleep(2)
+
+    messages=message.split('\n')
+    for msg in messages:
+        input_box.send_keys(msg)
+        input_box.send_keys(Keys.SHIFT,'\n')
+    input_box.send_keys("\n")
+
+    print("Mensaje Enviado")
+    # print("Status code: " + str(r.status_code))
+    # print("RESPONSE : " + str(r.content))
+    sem.release()
 
     return("success", 200)
 
