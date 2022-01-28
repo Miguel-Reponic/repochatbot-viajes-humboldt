@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 import threading
 import time
+from config import CHROME_PROFILE_PATH
 
 # Integration With SendPulse
 
@@ -35,17 +36,20 @@ application = Flask(__name__)
 # add a rule for the index page.
 application.add_url_rule('/', 'index', (lambda: header_text + instructions + footer_text))
 
-# time.sleep(1)
-
-# Start the WebDriver and Login
-driver = webdriver.Chrome(executable_path='chromedriver.exe')
-driver.get("https://web.whatsapp.com")
 sem = threading.Semaphore()
 lastGroupName = ""
+
+options = webdriver.ChromeOptions()
+options.add_argument(CHROME_PROFILE_PATH)
+isOpen = True
+driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
+driver.get("https://web.whatsapp.com")
+
 
 @application.route('/start_whatsapp_web', methods=['POST'])
 def start_whatsapp_web():
 
+    # Start the WebDriver and Login (If cache not set)
     return("success", 200)
 
 @application.route('/repochatbot_api', methods=['POST'])
@@ -88,26 +92,11 @@ def repochatbot_api():
         cantidad_dias = incoming_mesg['DiasCantidad']
         edad = incoming_mesg['Edad']
 
-        message = message + f"*Cantidad de Días:* {cantidad_dias}\nEdad: {edad}"
+        message = message + f"*Cantidad de Días:* {cantidad_dias}\n*Edad:* {edad}"
         groupName = GRUPO_SEGUROS
 
         if incoming_mesg['NoAtendido'] == "True":
             message = "URGENTE!! NO HA SIDO ATENDIDO EN 2 HORAS:\n\n" + message
-
-    # body_token = {
-    #     'grant_type' : "client_credentials",
-    #     'client_id' : '101800f95cbe9e47fa8fbe68685be3c2',
-    #     'client_secret' : 'f9694fb799bcb4657a740433b9083a81'
-    # }
-
-    # token_response = r = requests.post("https://api.sendpulse.com/oauth/access_token",
-    #         json=body_token)
-
-    # token_response = token_response.text
-
-    # token = json.loads(token_response)
-
-    # token = token['token_type'] + token['access_token']
 
     try:
         detalles_extras = incoming_mesg['DetallesExtra']
@@ -116,33 +105,62 @@ def repochatbot_api():
 
     message = f"{message} \n*Detalles Extras:* {detalles_extras} \n \n Grupo: {groupName}"
 
-#     headers = {
-#     'accept': "application/json", 
-#     'Authorization': token,
-#     "Content-Type": "application/json"
-#     }
+    try:
+        if request.args.get('sendmessage') == "True":
 
-#     jsonBody = {
-#     "contact_id": "61d83bcc256dd967f942d71c",
-#     "message": {
-#         "type": "text",
-#         "text": {
-#         "body": message
-#         }
-#   }
-#     }
+            # ------- SENDPULSE MESSAGE -----------
 
-    print("Enviando Mensaje")
+            body_token = {
+                'grant_type' : "client_credentials",
+                'client_id' : '101800f95cbe9e47fa8fbe68685be3c2',
+                'client_secret' : 'f9694fb799bcb4657a740433b9083a81'
+            }
 
-    # try:
-    #     r = requests.post("https://api.sendpulse.com/whatsapp/contacts/send", 
-    #         headers=headers,
-    #         json=jsonBody)
-    # except Exception as e:
-    #     print("Algo ha pasado:\n {e}")
+            token_response = r = requests.post("https://api.sendpulse.com/oauth/access_token",
+                    json=body_token)
+
+            token_response = token_response.text
+
+            token = json.loads(token_response)
+
+            token = token['token_type'] + token['access_token']
+
+            headers = {
+                'accept': "application/json", 
+                'Authorization': token,
+                "Content-Type": "application/json"
+            }
+
+            jsonBody = {
+                "contact_id": "61d83bcc256dd967f942d71c",
+                "message": {
+                    "type": "text",
+                    "text": {
+                    "body": message
+                    }
+                }
+            }
+
+            try:
+                r = requests.post("https://api.sendpulse.com/whatsapp/contacts/send", 
+                    headers=headers,
+                    json=jsonBody)
+            except Exception as e:
+                print("Algo ha pasado:\n {e}")
+
+            print("Status code: " + str(r.status_code))
+            print("RESPONSE : " + str(r.content))
+    except e:
+        print(e)
 
     # JUST FOR TESTING
-    # groupName = incoming_mesg['TestGroup']
+    try:
+        if request.args.get('test') == "True":
+            groupName = "TestBot"
+    except e:
+        print(e)
+
+    print("Enviando Mensaje")
 
     global lastGroupName
 
@@ -167,8 +185,7 @@ def repochatbot_api():
     input_box.send_keys("\n")
 
     print("Mensaje Enviado")
-    # print("Status code: " + str(r.status_code))
-    # print("RESPONSE : " + str(r.content))
+
     sem.release()
 
     return("success", 200)
@@ -273,4 +290,4 @@ def repochatbot():
 
 if __name__ == '__main__':
     
-    application.run(debug=True)
+    application.run(use_reloader=False, use_evalex=False)
