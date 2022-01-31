@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 import threading
 import time
 from config import CHROME_PROFILE_PATH
+from webdriver_manager.chrome import ChromeDriverManager
 
 # Integration With SendPulse
 
@@ -38,13 +39,18 @@ application.add_url_rule('/', 'index', (lambda: header_text + instructions + foo
 
 sem = threading.Semaphore()
 lastGroupName = ""
-
+print("chrome Path")
+print(CHROME_PROFILE_PATH)
 options = webdriver.ChromeOptions()
 options.add_argument(CHROME_PROFILE_PATH)
-isOpen = True
-driver = webdriver.Chrome(executable_path='chromedriver.exe', options=options)
+# options.add_argument("--profile-directory=Default")
+print("Loading Webdriver")
+driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+# firefox_profile = webdriver.FirefoxProfile('/home/reponic/Repochatbot/repochatbot-viajes-humboldt/FirefoxCache/Cache')
+# driver = webdriver.Firefox(firefox_profile)
+print("Before getting Wa")
 driver.get("https://web.whatsapp.com")
-
+print("After getting Wa")
 
 @application.route('/start_whatsapp_web', methods=['POST'])
 def start_whatsapp_web():
