@@ -2,6 +2,7 @@
 from flask import Flask, request
 import requests
 import json
+import os
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
@@ -9,14 +10,16 @@ import threading
 import time
 from config import CHROME_PROFILE_PATH
 from webdriver_manager.chrome import ChromeDriverManager
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Integration With SendPulse
 
 # TODO: When you have your own Client ID and secret, put down their values here:
-clientId = "101800f95cbe9e47fa8fbe68685be3c2"
-clientSecret = "f9694fb799bcb4657a740433b9083a81"
-
-repo_id = "61d83bcc256dd967f942d71c"
+clientId = os.getenv('SENDPULSE_CLIENT_ID')
+clientSecret = os.getenv('SENDPULSE_CLIENT_SECRET')
+repoId = os.getenv('REPO_NUMBER_ID')
 
 # GROUP CHATS
 GRUPO_BOLETOS_AEREOS = "Solicitudes Instagram"
@@ -42,15 +45,25 @@ lastGroupName = ""
 print("chrome Path")
 print(CHROME_PROFILE_PATH)
 options = webdriver.ChromeOptions()
+# options.headless = True
+options.add_argument('--no-sandbox')
+options.add_argument('--headless')
 options.add_argument(CHROME_PROFILE_PATH)
-# options.add_argument("--profile-directory=Default")
+options.add_argument('--disable-gpu')
+options.add_experimental_option('useAutomationExtension', False)
+options.add_argument('--hide-scrollbars')
+options.add_argument('--log-level=3')
+# options.add_argument('--user-agent=')
 print("Loading Webdriver")
 driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-# firefox_profile = webdriver.FirefoxProfile('/home/reponic/Repochatbot/repochatbot-viajes-humboldt/FirefoxCache/Cache')
-# driver = webdriver.Firefox(firefox_profile)
+user_agent = driver.execute_script("return navigator.userAgent;")
 print("Before getting Wa")
 driver.get("https://web.whatsapp.com")
 print("After getting Wa")
+print("Taking Screenshot")
+driver.get_screenshot_as_file("wa_screenshot.png")
+input("Press enter to continue once you have checked the image...")
+print("Start making requests!")
 
 @application.route('/start_whatsapp_web', methods=['POST'])
 def start_whatsapp_web():
@@ -118,8 +131,8 @@ def repochatbot_api():
 
             body_token = {
                 'grant_type' : "client_credentials",
-                'client_id' : '101800f95cbe9e47fa8fbe68685be3c2',
-                'client_secret' : 'f9694fb799bcb4657a740433b9083a81'
+                'client_id' : clientId,
+                'client_secret' : clientSecret
             }
 
             token_response = r = requests.post("https://api.sendpulse.com/oauth/access_token",
@@ -138,7 +151,7 @@ def repochatbot_api():
             }
 
             jsonBody = {
-                "contact_id": "61d83bcc256dd967f942d71c",
+                "contact_id": repoId,
                 "message": {
                     "type": "text",
                     "text": {

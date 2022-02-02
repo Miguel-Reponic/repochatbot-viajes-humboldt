@@ -1,3 +1,12 @@
-2022/01/30-13:30:08.982 f77 Reusing MANIFEST /home/reponic/Repochatbot/repochatbot-viajes-humboldt/Wsp/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2022/01/30-13:30:08.982 f77 Recovering log #4
-2022/01/30-13:30:09.021 f77 Reusing old log /home/reponic/Repochatbot/repochatbot-viajes-humboldt/Wsp/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000004.log 
+2022/02/01-10:30:51.440 2190 Reusing MANIFEST /home/reponic/Repochatbot/repochatbot-viajes-humboldt/Wsp/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2022/02/01-10:30:51.440 2190 Recovering log #7
+2022/02/01-10:30:51.493 2190 Reusing old log /home/reponic/Repochatbot/repochatbot-viajes-humboldt/Wsp/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000007.log 
+2022/02/01-10:30:53.903 2195 Level-0 table #12: started
+2022/02/01-10:30:53.973 2195 Level-0 table #12: 993927 bytes OK
+2022/02/01-10:30:53.977 2195 Delete type=0 #7
+2022/02/01-10:30:53.979 2195 Compacting 1@1 + 1@2 files
+2022/02/01-10:30:54.013 2195 Generated table #13@1: 28013 keys, 1253209 bytes
+2022/02/01-10:30:54.013 2195 Compacted 1@1 + 1@2 files => 1253209 bytes
+2022/02/01-10:30:54.033 2195 compacted to: files[ 0 0 1 0 0 0 0 ]
+2022/02/01-10:30:54.033 2195 Delete type=2 #9
+2022/02/01-10:30:54.033 2195 Delete type=2 #12

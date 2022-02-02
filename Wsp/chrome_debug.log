@@ -1,9 +1,0 @@
-[4153:4153:0130/133036.582721:ERROR:viz_main_impl.cc(161)] Exiting GPU process due to errors during initialization
-[4202:4202:0130/133036.858496:ERROR:viz_main_impl.cc(161)] Exiting GPU process due to errors during initialization
-[4215:4215:0130/133036.911171:ERROR:sandbox_linux.cc(378)] InitializeSandbox() called with multiple threads in process gpu-process.
-[4110:4110:0130/133038.644559:INFO:CONSOLE(1)] "Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Partial response (status code 206) is unsupported", source: https://web.whatsapp.com/serviceworker.js (1)
-[4110:4110:0130/133038.655480:INFO:CONSOLE(1)] "Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Partial response (status code 206) is unsupported", source: https://web.whatsapp.com/serviceworker.js (1)
-[4110:4110:0130/133038.659835:INFO:CONSOLE(1)] "Uncaught (in promise) TypeError: Failed to execute 'put' on 'Cache': Partial response (status code 206) is unsupported", source: https://web.whatsapp.com/serviceworker.js (1)
-[4110:4134:0130/133043.978680:ERROR:chrome_browser_main_extra_parts_metrics.cc(227)] START: ReportBluetoothAvailability(). If you don't see the END: message, this is crbug.com/1216328.
-[4110:4134:0130/133043.978697:ERROR:chrome_browser_main_extra_parts_metrics.cc(230)] END: ReportBluetoothAvailability()
-[4110:4110:0130/223040.697906:WARNING:pref_notifier_impl.cc(40)] Pref observer for media_router.cast_allow_all_ips found at shutdown.

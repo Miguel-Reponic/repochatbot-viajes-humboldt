@@ -2,7 +2,7 @@ import requests
 import json
 import time
 
-local_request = "http://127.0.0.1:5000/repochatbot"
+local_request = "http://127.0.0.1:5000/repochatbot_api?test=True"
 external_request = ""
 
 webhook_url = local_request
