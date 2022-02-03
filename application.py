@@ -5,11 +5,14 @@ import json
 import os
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import threading
 import time
-from config import CHROME_PROFILE_PATH
-from webdriver_manager.chrome import ChromeDriverManager
+from config import PROFILE_PATH
+# from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.firefox.options import Options
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -42,24 +45,34 @@ application.add_url_rule('/', 'index', (lambda: header_text + instructions + foo
 
 sem = threading.Semaphore()
 lastGroupName = ""
-print("chrome Path")
-print(CHROME_PROFILE_PATH)
-options = webdriver.ChromeOptions()
+print("Profile Path")
+print(PROFILE_PATH)
+
+
+# options = webdriver.ChromeOptions()
 # options.headless = True
-options.add_argument('--no-sandbox')
-options.add_argument('--headless')
-options.add_argument(CHROME_PROFILE_PATH)
-options.add_argument('--disable-gpu')
-options.add_experimental_option('useAutomationExtension', False)
-options.add_argument('--hide-scrollbars')
-options.add_argument('--log-level=3')
+# options.add_argument('--no-sandbox')
+# options.add_argument('--headless')
+# options.add_argument(PROFILE_PATH)
+# options.add_argument('--disable-gpu')
+# options.add_experimental_option('useAutomationExtension', False)
+# options.add_argument('--hide-scrollbars')
+# options.add_argument('--log-level=3')
 # options.add_argument('--user-agent=')
-print("Loading Webdriver")
-driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-user_agent = driver.execute_script("return navigator.userAgent;")
-print("Before getting Wa")
+# print("Loading Chrome Webdriver")
+# driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+# user_agent = driver.execute_script("return navigator.userAgent;")
+
+print("Loading Firefox Webdirver")
+options = Options()
+options.headless = True
+firefox_profile = webdriver.FirefoxProfile(PROFILE_PATH)
+driver = webdriver.FireFox(options=options, executable_path='geckodriver', firefox_profile=firefox_profile)
+print("Getting Whatsapp Website")
 driver.get("https://web.whatsapp.com")
-print("After getting Wa")
+print("Waiting for QR to show...")
+# qr_element = WebDriverWait(driver,100).until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[1]/div/div[2]/div[1]/div/div[2]/div')))
+time.sleep(10)
 print("Taking Screenshot")
 driver.get_screenshot_as_file("wa_screenshot.png")
 input("Press enter to continue once you have checked the image...")

@@ -1,5 +1,7 @@
 import os
-CHROME_PROFILE_PATH = f"user-data-dir=/home/reponic/Repochatbot/repochatbot-viajes-humboldt/Wsp"
+PROFILE_PATH = f"/home/{os.getlogin()}/Repochatbot/repochatbot-viajes-humboldt/Wsp"
+
+ATTR = "user-data-dir="
 
 # Windows 7, 8.1, and 10: C:\\Users\\{os.getlogin()\\AppData\\Local\\Google\\Chrome\\User Data\\Default
 # Mac OS X El Capitan: Users/{os.getlogin()/Library/Application Support/Google/Chrome/Default
