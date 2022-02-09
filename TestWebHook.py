@@ -1,11 +1,25 @@
 import requests
 import json
 import time
+import argparse
 
-local_request = "http://127.0.0.1:5000/repochatbot_api?test=True"
+base_local_request = "http://127.0.0.1:5000/"
+endpoint_message = "repochatbot_api?test=True"
+
 external_request = ""
 
-webhook_url = local_request
+parser = argparse.ArgumentParser()
+parser.add_argument("-ss", "--ScreenShot", default=False, help="Make Screenshot request")
+
+webhook_url = base_local_request
+args = parser.parse_args()
+try:
+    ss = args.ScreenShot
+    print(f"Take Screenshot: {ss}")
+except:
+    ss = False
+
+
 
 data = [
    {
@@ -75,14 +89,22 @@ prueba_3 = {
 "NoAtendido": "True"
 }
 
-print("Prueba 1")
-print(prueba_1)
-r = requests.post(webhook_url, data=json.dumps(prueba_1), headers={'Content-Type': 'application/json'})
-time.sleep(1)
-print("Prueba 2")
-print(prueba_2)
-r = requests.post(webhook_url, data=json.dumps(prueba_2), headers={'Content-Type': 'application/json'})
-time.sleep(1)
-print("Prueba 3")
-print(prueba_3)
-r = requests.post(webhook_url, data=json.dumps(prueba_3), headers={'Content-Type': 'application/json'})
+
+if ss == "True":
+
+    r = requests.get(webhook_url+"/screenshot")
+    print("Request result: ")
+    print(r)
+
+else:
+    print("Prueba 1")
+    print(prueba_1)
+    r = requests.post(webhook_url+endpoint_message, data=json.dumps(prueba_1), headers={'Content-Type': 'application/json'})
+    time.sleep(1)
+    print("Prueba 2")
+    print(prueba_2)
+    r = requests.post(webhook_url+endpoint_message, data=json.dumps(prueba_2), headers={'Content-Type': 'application/json'})
+    time.sleep(1)
+    print("Prueba 3")
+    print(prueba_3)
+    r = requests.post(webhook_url+endpoint_message, data=json.dumps(prueba_3), headers={'Content-Type': 'application/json'})

@@ -15,6 +15,14 @@ from config import PROFILE_PATH
 from selenium.webdriver.firefox.options import Options
 from dotenv import load_dotenv
 
+# import for Email
+import smtplib, ssl
+from os.path import basename
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import COMMASPACE, formatdate
+
 load_dotenv()
 
 # Integration With SendPulse
@@ -23,11 +31,44 @@ load_dotenv()
 clientId = os.getenv('SENDPULSE_CLIENT_ID')
 clientSecret = os.getenv('SENDPULSE_CLIENT_SECRET')
 repoId = os.getenv('REPO_NUMBER_ID')
+sendToEmail = os.getenv('SEND_TO_EMAIL')
+fromToEmail = os.getenv('FROM_TO_EMAIL')
+fromToPass = os.getenv('FROM_TO_PASS')
 
 # GROUP CHATS
 GRUPO_BOLETOS_AEREOS = "Solicitudes Instagram"
 GRUPO_SEGUROS = "Solicitudes Instagram"
 GRUPO_PAQUETES_TURISTICOS = "Solic. Internas VH PLUS"
+
+# Method to take screenshot and send email
+def screenShotAndSendEmail(imgName: str):
+
+    driver.get_screenshot_as_file(imgName)
+
+    msg = MIMEMultipart()
+    msg['From'] = fromToEmail
+    msg['To'] = sendToEmail
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = "SS from Repochatbot"
+
+    print(f"Credentials:\n From: {msg['From']} \n To: {msg['To']} \n Pass: {fromToPass}")
+
+    msg.attach(MIMEText("Screenshot from Repochatbot"))
+    with open(imgName, "rb") as img:
+        part = MIMEApplication(
+                img.read(),
+                Name=basename(imgName)
+                )
+
+    #After the file is closed
+    part['Content-Disposition'] = f'attachment; filename={basename(imgName)}'
+    msg.attach(part)
+
+    context = ssl.create_default_context()
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        server.login(fromToEmail, fromToPass)
+        server.sendmail( fromToEmail, sendToEmail, msg.as_string() )
 
 
 # some bits of text for the page.
@@ -48,40 +89,47 @@ lastGroupName = ""
 print("Profile Path")
 print(PROFILE_PATH)
 
-
-# options = webdriver.ChromeOptions()
-# options.headless = True
-# options.add_argument('--no-sandbox')
-# options.add_argument('--headless')
-# options.add_argument(PROFILE_PATH)
-# options.add_argument('--disable-gpu')
-# options.add_experimental_option('useAutomationExtension', False)
-# options.add_argument('--hide-scrollbars')
-# options.add_argument('--log-level=3')
-# options.add_argument('--user-agent=')
-# print("Loading Chrome Webdriver")
-# driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-# user_agent = driver.execute_script("return navigator.userAgent;")
-
 print("Loading Firefox Webdirver")
 options = Options()
 options.headless = True
-firefox_profile = webdriver.FirefoxProfile(PROFILE_PATH)
-driver = webdriver.FireFox(options=options, executable_path='geckodriver', firefox_profile=firefox_profile)
+# options.add_argument("-profile")
+# options.add_argument("/home/reponic/.mozilla/firefox/wsp.chatbot")
+driver = webdriver.Firefox(options=options, executable_path=f'/home/{os.getlogin()}/Repochatbot/repochatbot-viajes-humboldt/geckodriver')
+
 print("Getting Whatsapp Website")
 driver.get("https://web.whatsapp.com")
+
 print("Waiting for QR to show...")
-# qr_element = WebDriverWait(driver,100).until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div[1]/div/div[2]/div[1]/div/div[2]/div')))
-time.sleep(10)
-print("Taking Screenshot")
-driver.get_screenshot_as_file("wa_screenshot.png")
-input("Press enter to continue once you have checked the image...")
+
+try: 
+    qr_element = WebDriverWait(driver,50).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[1]/div/div[2]/div[1]/div/div[2]/div')))
+
+except:
+
+    print("Taking Screenshot")
+    screenShotAndSendEmail("wa_screenshot.png")
+
+res = input("Input ss enter to take screenshot or press ENTER to continue...")
+if res == "ss":
+    res2 = ""
+    while res2 == "":
+        screenShotAndSendEmail("wa_screenshot.png")
+        res2 = input("Input continue to continue or ENTER to keep taking screenshot...")
+
 print("Start making requests!")
+screenShotAndSendEmail(f"wa_screenshot_after_qr.png")
 
 @application.route('/start_whatsapp_web', methods=['POST'])
 def start_whatsapp_web():
 
     # Start the WebDriver and Login (If cache not set)
+    return("success", 200)
+
+@application.route('/screenshot', methods=['GET'])
+def screenshot():
+
+    print("Taking screenshot")
+    screenShotandSendEmail("current_wa_state.png")
     return("success", 200)
 
 @application.route('/repochatbot_api', methods=['POST'])
@@ -127,8 +175,8 @@ def repochatbot_api():
         message = message + f"*Cantidad de Días:* {cantidad_dias}\n*Edad:* {edad}"
         groupName = GRUPO_SEGUROS
 
-        if incoming_mesg['NoAtendido'] == "True":
-            message = "URGENTE!! NO HA SIDO ATENDIDO EN 2 HORAS:\n\n" + message
+    if incoming_mesg['NoAtendido'] == "True":
+        message = "*URGENTE!! NO HA SIDO ATENDIDO EN 2 HORAS:*\n\n" + message
 
     try:
         detalles_extras = incoming_mesg['DetallesExtra']
@@ -269,7 +317,7 @@ def repochatbot():
         message = message + f"*Cantidad de Días:* {cantidad_dias}\nEdad: {edad}"
         groupName = GRUPO_SEGUROS
 
-        if incoming_mesg[0]['contact']['variables']['DiasCantidad'] == "True":
+    if incoming_mesg[0]['contact']['variables']['DiasCantidad'] == "True":
             message = "URGENTE!! NO HA SIDO ATENDIDO EN 2 HORAS:\n\n" + message
 
     body_token = {

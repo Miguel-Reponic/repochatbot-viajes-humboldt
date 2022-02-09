@@ -65,6 +65,7 @@ PyScreeze==0.1.28
 python-apt==2.0.0+ubuntu0.20.4.6
 python-dateutil==2.7.3
 python-debian===0.1.36ubuntu1
+python-dotenv==0.19.2
 python3-xlib==0.15
 pytweening==1.0.4
 pytz==2019.3
